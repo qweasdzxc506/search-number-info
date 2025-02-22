@@ -1,315 +1,168 @@
-#!/usr/bin/python
-# << CODE BY HUNX04
-# << MAU RECODE ??? IZIN DULU LAH,  MINIMAL TAG AKUN GITHUB MIMIN YANG MENGARAH KE AKUN INI, LEBIH GAMPANG SI PAKE FORK
-# << KALAU DI ATAS TIDAK DI IKUTI MAKA AKAN MENDAPATKAN DOSA KARENA MIMIN GAK IKHLAS
-# “Wahai orang-orang yang beriman! Janganlah kamu saling memakan harta sesamamu dengan jalan yang batil,” (QS. An Nisaa': 29). Rasulullah SAW juga melarang umatnya untuk mengambil hak orang lain tanpa izin.
-
-# IMPORT MODULE
-
-import json
-import requests
-import time
-import os
 import phonenumbers
-from phonenumbers import carrier, geocoder, timezone
-from sys import stderr
+from phonenumbers import geocoder, carrier, number_type
+import requests
+import re
+import os
 
-Bl = '\033[30m'  # VARIABLE BUAT WARNA CUYY
-Re = '\033[1;31m'
-Gr = '\033[1;32m'
-Ye = '\033[1;33m'
-Blu = '\033[1;34m'
-Mage = '\033[1;35m'
-Cy = '\033[1;36m'
-Wh = '\033[1;37m'
+# База операторов и регионов (можно дополнять)
+OPERATOR_REGIONS = {
+    "911": "Санкт-Петербург и Ленинградская область",
+    "495": "Москва",
+    "499": "Москва",
+    "812": "Санкт-Петербург",
+    "343": "Екатеринбург",
+    "846": "Самара",
+    "861": "Краснодар",
+    "863": "Ростов-на-Дону",
+}
 
+KNOWN_NUMBERS = {
+    "+74956630920": "Сбербанк",
+    "+78005553535": "Тинькофф Банк",
+    "+74957888888": "Аэрофлот",
+}
 
-# utilities
-
-# decorator for attaching run_banner to a function
-def is_option(func):
-    def wrapper(*args, **kwargs):
-        run_banner()
-        func(*args, **kwargs)
-
-
-    return wrapper
-
-
-# FUNCTIONS FOR MENU
-@is_option
-def IP_Track():
-    ip = input(f"{Wh}\n Enter IP target : {Gr}")  # INPUT IP ADDRESS
-    print()
-    print(f' {Wh}============= {Gr}SHOW INFORMATION IP ADDRESS {Wh}=============')
-    req_api = requests.get(f"http://ipwho.is/{ip}")  # API IPWHOIS.IS
-    ip_data = json.loads(req_api.text)
-    time.sleep(2)
-    print(f"{Wh}\n IP target       :{Gr}", ip)
-    print(f"{Wh} Type IP         :{Gr}", ip_data["type"])
-    print(f"{Wh} Country         :{Gr}", ip_data["country"])
-    print(f"{Wh} Country Code    :{Gr}", ip_data["country_code"])
-    print(f"{Wh} City            :{Gr}", ip_data["city"])
-    print(f"{Wh} Continent       :{Gr}", ip_data["continent"])
-    print(f"{Wh} Continent Code  :{Gr}", ip_data["continent_code"])
-    print(f"{Wh} Region          :{Gr}", ip_data["region"])
-    print(f"{Wh} Region Code     :{Gr}", ip_data["region_code"])
-    print(f"{Wh} Latitude        :{Gr}", ip_data["latitude"])
-    print(f"{Wh} Longitude       :{Gr}", ip_data["longitude"])
-    lat = int(ip_data['latitude'])
-    lon = int(ip_data['longitude'])
-    print(f"{Wh} Maps            :{Gr}", f"https://www.google.com/maps/@{lat},{lon},8z")
-    print(f"{Wh} EU              :{Gr}", ip_data["is_eu"])
-    print(f"{Wh} Postal          :{Gr}", ip_data["postal"])
-    print(f"{Wh} Calling Code    :{Gr}", ip_data["calling_code"])
-    print(f"{Wh} Capital         :{Gr}", ip_data["capital"])
-    print(f"{Wh} Borders         :{Gr}", ip_data["borders"])
-    print(f"{Wh} Country Flag    :{Gr}", ip_data["flag"]["emoji"])
-    print(f"{Wh} ASN             :{Gr}", ip_data["connection"]["asn"])
-    print(f"{Wh} ORG             :{Gr}", ip_data["connection"]["org"])
-    print(f"{Wh} ISP             :{Gr}", ip_data["connection"]["isp"])
-    print(f"{Wh} Domain          :{Gr}", ip_data["connection"]["domain"])
-    print(f"{Wh} ID              :{Gr}", ip_data["timezone"]["id"])
-    print(f"{Wh} ABBR            :{Gr}", ip_data["timezone"]["abbr"])
-    print(f"{Wh} DST             :{Gr}", ip_data["timezone"]["is_dst"])
-    print(f"{Wh} Offset          :{Gr}", ip_data["timezone"]["offset"])
-    print(f"{Wh} UTC             :{Gr}", ip_data["timezone"]["utc"])
-    print(f"{Wh} Current Time    :{Gr}", ip_data["timezone"]["current_time"])
-
-
-@is_option
-def phoneGW():
-    User_phone = input(
-        f"\n {Wh}Enter phone number target {Gr}Ex [+6281xxxxxxxxx] {Wh}: {Gr}")  # INPUT NUMBER PHONE
-    default_region = "ID"  # DEFAULT NEGARA INDONESIA
-
-    parsed_number = phonenumbers.parse(User_phone, default_region)  # VARIABLE PHONENUMBERS
-    region_code = phonenumbers.region_code_for_number(parsed_number)
-    jenis_provider = carrier.name_for_number(parsed_number, "en")
-    location = geocoder.description_for_number(parsed_number, "id")
-    is_valid_number = phonenumbers.is_valid_number(parsed_number)
-    is_possible_number = phonenumbers.is_possible_number(parsed_number)
-    formatted_number = phonenumbers.format_number(parsed_number, phonenumbers.PhoneNumberFormat.INTERNATIONAL)
-    formatted_number_for_mobile = phonenumbers.format_number_for_mobile_dialing(parsed_number, default_region,
-                                                                                with_formatting=True)
-    number_type = phonenumbers.number_type(parsed_number)
-    timezone1 = timezone.time_zones_for_number(parsed_number)
-    timezoneF = ', '.join(timezone1)
-
-    print(f"\n {Wh}========== {Gr}SHOW INFORMATION PHONE NUMBERS {Wh}==========")
-    print(f"\n {Wh}Location             :{Gr} {location}")
-    print(f" {Wh}Region Code          :{Gr} {region_code}")
-    print(f" {Wh}Timezone             :{Gr} {timezoneF}")
-    print(f" {Wh}Operator             :{Gr} {jenis_provider}")
-    print(f" {Wh}Valid number         :{Gr} {is_valid_number}")
-    print(f" {Wh}Possible number      :{Gr} {is_possible_number}")
-    print(f" {Wh}International format :{Gr} {formatted_number}")
-    print(f" {Wh}Mobile format        :{Gr} {formatted_number_for_mobile}")
-    print(f" {Wh}Original number      :{Gr} {parsed_number.national_number}")
-    print(
-        f" {Wh}E.164 format         :{Gr} {phonenumbers.format_number(parsed_number, phonenumbers.PhoneNumberFormat.E164)}")
-    print(f" {Wh}Country code         :{Gr} {parsed_number.country_code}")
-    print(f" {Wh}Local number         :{Gr} {parsed_number.national_number}")
-    if number_type == phonenumbers.PhoneNumberType.MOBILE:
-        print(f" {Wh}Type                 :{Gr} This is a mobile number")
-    elif number_type == phonenumbers.PhoneNumberType.FIXED_LINE:
-        print(f" {Wh}Type                 :{Gr} This is a fixed-line number")
-    else:
-        print(f" {Wh}Type                 :{Gr} This is another type of number")
-
-
-@is_option
-def TrackLu():
+def get_phone_info(phone_number):
+    """Определяет информацию по номеру телефона"""
     try:
-        username = input(f"\n {Wh}Enter Username : {Gr}")
-        results = {}
-        social_media = [
-            {"url": "https://www.facebook.com/{}", "name": "Facebook"},
-            {"url": "https://www.twitter.com/{}", "name": "Twitter"},
-            {"url": "https://www.instagram.com/{}", "name": "Instagram"},
-            {"url": "https://www.linkedin.com/in/{}", "name": "LinkedIn"},
-            {"url": "https://www.github.com/{}", "name": "GitHub"},
-            {"url": "https://www.pinterest.com/{}", "name": "Pinterest"},
-            {"url": "https://www.tumblr.com/{}", "name": "Tumblr"},
-            {"url": "https://www.youtube.com/{}", "name": "Youtube"},
-            {"url": "https://soundcloud.com/{}", "name": "SoundCloud"},
-            {"url": "https://www.snapchat.com/add/{}", "name": "Snapchat"},
-            {"url": "https://www.tiktok.com/@{}", "name": "TikTok"},
-            {"url": "https://www.behance.net/{}", "name": "Behance"},
-            {"url": "https://www.medium.com/@{}", "name": "Medium"},
-            {"url": "https://www.quora.com/profile/{}", "name": "Quora"},
-            {"url": "https://www.flickr.com/people/{}", "name": "Flickr"},
-            {"url": "https://www.periscope.tv/{}", "name": "Periscope"},
-            {"url": "https://www.twitch.tv/{}", "name": "Twitch"},
-            {"url": "https://www.dribbble.com/{}", "name": "Dribbble"},
-            {"url": "https://www.stumbleupon.com/stumbler/{}", "name": "StumbleUpon"},
-            {"url": "https://www.ello.co/{}", "name": "Ello"},
-            {"url": "https://www.producthunt.com/@{}", "name": "Product Hunt"},
-            {"url": "https://www.snapchat.com/add/{}", "name": "Snapchat"},
-            {"url": "https://www.telegram.me/{}", "name": "Telegram"},
-            {"url": "https://www.weheartit.com/{}", "name": "We Heart It"}
-        ]
-        for site in social_media:
-            url = site['url'].format(username)
-            response = requests.get(url)
-            if response.status_code == 200:
-                results[site['name']] = url
-            else:
-                results[site['name']] = (f"{Ye}Username not found {Ye}!")
+        parsed_number = phonenumbers.parse(phone_number, "RU")
+        region = geocoder.description_for_number(parsed_number, "ru")
+        operator = carrier.name_for_number(parsed_number, "ru")
+        num_type = number_type(parsed_number)
+
+        type_str = "Мобильный" if num_type == phonenumbers.PhoneNumberType.MOBILE else "Стационарный"
+
+        number_str = str(parsed_number.national_number)
+        operator_code = number_str[:3]
+        approximate_location = OPERATOR_REGIONS.get(operator_code, "Неизвестный регион")
+
+        known_info = KNOWN_NUMBERS.get(phone_number, "Неизвестно")
+
+        return f"""
+ [+] Номер: {phone_number}
+ [+] Регион: {region}
+ [+] Оператор: {operator}
+ [+] Тип номера: {type_str}
+ [+] Примерное местоположение: {approximate_location}
+ [+] Чей номер: {known_info}
+"""
     except Exception as e:
-        print(f"{Re}Error : {e}")
-        return
+        return f"Ошибка при обработке номера: {e}"
 
-    print(f"\n {Wh}========== {Gr}SHOW INFORMATION USERNAME {Wh}==========")
-    print()
-    for site, url in results.items():
-        print(f" {Wh}[ {Gr}+ {Wh}] {site} : {Gr}{url}")
+def get_ip_info(ip):
+    """Определяет полную информацию по IP"""
+    url = f"http://ip-api.com/json/{ip}?fields=status,message,query,country,regionName,city,lat,lon,isp,org,timezone,zip"
+    response = requests.get(url).json()
+    
+    if response.get("status") == "fail":
+        return "Не удалось получить данные. Возможно, IP некорректен."
 
+    return f"""
+[+] IP: {response['query']}
+[+] Страна: {response['country']}
+[+] Город: {response['city']}
+[+] Провайдер: {response['isp']}
+[+] Организация: {response.get('org', 'Неизвестно')}
+[+] Часовой пояс: {response['timezone']}
+[+] Почтовый индекс: {response.get('zip', 'Неизвестно')}
+[+] Координаты: {response['lat']}, {response['lon']}
+"""
 
-@is_option
-def showIP():
-    respone = requests.get('https://api.ipify.org/')
-    Show_IP = respone.text
+def search_fio(full_name):
+    """Ищет ФИО в файлах папки bd"""
+    directory = "bd"
+    results = []
+    
+    if not os.path.exists(directory):
+        return "Папка 'bd' не найдена!"
+    
+    for filename in os.listdir(directory):
+        file_path = os.path.join(directory, filename)
+        
+        if os.path.isfile(file_path):
+            try:
+                with open(file_path, "r", encoding="utf-8") as file:
+                    for line in file:
+                        if full_name.lower() in line.lower():
+                            results.append(f"Найдено в {filename}: {line.strip()}")
+            except Exception as e:
+                return f"Ошибка при чтении {filename}: {e}"
+    
+    return "\n".join(results) if results else "ФИО не найдено в базе!"
 
-    print(f"\n {Wh}========== {Gr}SHOW INFORMATION YOUR IP {Wh}==========")
-    print(f"\n {Wh}[{Gr} + {Wh}] Your IP Adrress : {Gr}{Show_IP}")
-    print(f"\n {Wh}==============================================")
-
-
-# OPTIONS
-options = [
-    {
-        'num': 1,
-        'text': 'IP Tracker',
-        'func': IP_Track
-    },
-    {
-        'num': 2,
-        'text': 'Show Your IP',
-        'func': showIP
-
-    },
-    {
-        'num': 3,
-        'text': 'Phone Number Tracker',
-        'func': phoneGW
-    },
-    {
-        'num': 4,
-        'text': 'Username Tracker',
-        'func': TrackLu
-    },
-    {
-        'num': 0,
-        'text': 'Exit',
-        'func': exit
-    }
-]
-
-
-def clear():
-    # for windows
-    if os.name == 'nt':
-        _ = os.system('cls')
-    # for mac and linux
+def search_vk(user_id):
+    """Поиск информации о пользователе ВКонтакте"""
+    url = f"https://api.vk.com/method/users.get?user_ids={user_id}&fields=city,domain&access_token=YOUR_ACCESS_TOKEN&v=5.131"
+    response = requests.get(url).json()
+    
+    if "response" in response:
+        user = response["response"][0]
+        return f"""
+[+] ID: {user['id']}
+[+] Имя: {user['first_name']} {user['last_name']}
+[+] Город: {user.get('city', {}).get('title', 'Неизвестно')}
+[+] Профиль: https://vk.com/{user['domain']}
+"""
     else:
-        _ = os.system('clear')
+        return "Ошибка при получении данных ВКонтакте!"
 
-
-def call_option(opt):
-    if not is_in_options(opt):
-        raise ValueError('Option not found')
-    for option in options:
-        if option['num'] == opt:
-            if 'func' in option:
-                option['func']()
-            else:
-                print('No function detected')
-
-
-def execute_option(opt):
+def search_card(card_number):
+    """Поиск информации по номеру банковской карты"""
+    url = f"https://lookup.binlist.net/{card_number[:6]}"
     try:
-        call_option(opt)
-        input(f'\n{Wh}[ {Gr}+ {Wh}] {Gr}Press enter to continue')
-        main()
-    except ValueError as e:
-        print(e)
-        time.sleep(2)
-        execute_option(opt)
-    except KeyboardInterrupt:
-        print(f'\n{Wh}[ {Re}! {Wh}] {Re}Exit')
-        time.sleep(2)
-        exit()
-
-
-def option_text():
-    text = ''
-    for opt in options:
-        text += f'{Wh}[ {opt["num"]} ] {Gr}{opt["text"]}\n'
-    return text
-
-
-def is_in_options(num):
-    for opt in options:
-        if opt['num'] == num:
-            return True
-    return False
-
-
-def option():
-    # BANNER TOOLS
-    clear()
-    stderr.writelines(f"""
-       ________               __      ______                __  
-      / ____/ /_  ____  _____/ /_    /_  __/________ ______/ /__
-     / / __/ __ \/ __ \/ ___/ __/_____/ / / ___/ __ `/ ___/ //_/
-    / /_/ / / / / /_/ (__  ) /_/_____/ / / /  / /_/ / /__/ ,<   
-    \____/_/ /_/\____/____/\__/     /_/ /_/   \__,_/\___/_/|_| 
-
-              {Wh}[ + ]  C O D E   B Y  H U N X  [ + ]
-    """)
-
-    stderr.writelines(f"\n\n\n{option_text()}")
-
-
-def run_banner():
-    clear()
-    time.sleep(1)
-    stderr.writelines(f"""{Wh}
-         .-.
-       .'   `.          {Wh}--------------------------------
-       :g g   :         {Wh}| {Gr}GHOST - TRACKER - IP ADDRESS {Wh}|
-       : o    `.        {Wh}|       {Gr}@CODE BY HUNXBYTS      {Wh}|
-      :         ``.     {Wh}--------------------------------
-     :             `.
-    :  :         .   `.
-    :   :          ` . `.
-     `.. :            `. ``;
-        `:;             `:'
-           :              `.
-            `.              `.     .
-              `'`'`'`---..,___`;.-'
-        """)
-    time.sleep(0.5)
-
+        response = requests.get(url)
+        if response.status_code != 200:
+            return "Ошибка: сервер binlist.net недоступен или вернул ошибку"
+        
+        data = response.json()
+        return f"""
+[+] Номер карты: {card_number}
+[+] Банк: {data.get('bank', {}).get('name', 'Неизвестно')}
+[+] Страна: {data.get('country', {}).get('name', 'Неизвестно')}
+[+] Тип карты: {data.get('type', 'Неизвестно')}
+[+] Уровень карты: {data.get('brand', 'Неизвестно')}
+[+] Валюта: {data.get('country', {}).get('currency', 'Неизвестно')}
+[+] 3D Secure: {data.get('prepaid', 'Неизвестно')}
+[+] Сайт банка: {data.get('bank', {}).get('url', 'Неизвестно')}
+[+] Телефон банка: {data.get('bank', {}).get('phone', 'Неизвестно')}
+[+] Категория карты: {data.get('scheme', 'Неизвестно')}
+"""
+    except requests.exceptions.RequestException as e:
+        return f"Ошибка сети: {e}"
+    except Exception as e:
+        return f"Ошибка при обработке данных: {e}"
 
 def main():
-    clear()
-    option()
-    time.sleep(1)
-    try:
-        opt = int(input(f"{Wh}\n [ + ] {Gr}Select Option : {Wh}"))
-        execute_option(opt)
-    except ValueError:
-        print(f'\n{Wh}[ {Re}! {Wh}] {Re}Please input number')
-        time.sleep(2)
-        main()
+    while True:
+        print("\n Выберите действие:")
+        print("1. Пробить номер телефона")
+        print("2. Пробить IP-адрес")
+        print("4. Найти информацию по VK")
+        print("5. Найти информацию по банковской карте")
+        print("6. Выйти")
+        
+        choice = input("Введите номер действия (1-6): ")
+        
+        if choice == "1":
+            phone = input("Введите номер в формате +7XXXXXXXXXX: ")
+            print(get_phone_info(phone))
+        elif choice == "2":
+            ip = input("Введите IP-адрес: ")
+            print(get_ip_info(ip))
+        elif choice == "3":
+            full_name = input("Введите ФИО для поиска: ")
+            print(search_fio(full_name))
+        elif choice == "4":
+            vk_id = input("Введите ID или короткое имя пользователя VK: ")
+            print(search_vk(vk_id))
+        elif choice == "5":
+            card_number = input("Введите номер банковской карты: ")
+            print(search_card(card_number))
+        elif choice == "6":
+            print(" Выход...")
+            break
+        else:
+            print(" Неверный ввод! Попробуйте снова.")
 
-
-if __name__ == '__main__':
-    try:
-        main()
-    except KeyboardInterrupt:
-        print(f'\n{Wh}[ {Re}! {Wh}] {Re}Exit')
-        time.sleep(2)
-        exit()
+if __name__ == "__main__":
+    main()
